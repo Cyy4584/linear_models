@@ -1,0 +1,46 @@
+---
+title: "Linear_models"
+author: "Yingyu Cui"
+date: "2024-11-07"
+output: github_document
+---
+
+```{r setup}
+library(tidyverse)
+library(p8105.datasets)
+
+set.seed(1)
+```
+
+# load date
+```{r load data}
+data("nyc_airbnb")
+
+nyc_airbnb = 
+  nyc_airbnb |> 
+  mutate(stars = review_scores_location / 2) |> 
+  rename(
+    borough = neighbourhood_group,
+    neighborhood = neighbourhood) |> 
+  filter(borough != "Staten Island") |> 
+  select(price, stars, borough, neighborhood, room_type)
+```
+
+# use this formula 
+```{r linear}
+fit = lm(price ~ stars + borough, data = nyc_airbnb)
+#As we’ll see shortly, interactions between variables can be specified using *. You can also specify an intercept-only model (outcome ~ 1), a model with no intercept (outcome ~ 0 + ...), and a model using all available predictors (outcome ~ .).
+
+#for categotical variable,  the factor level is treated as the reference. As with ggplot, being careful with factors is therefore critical!
+
+nyc_airbnb = 
+  nyc_airbnb |> 
+  mutate(
+    borough = fct_infreq(borough),
+    room_type = fct_infreq(room_type))
+
+fit = lm(price ~ stars + borough, data = nyc_airbnb)
+#It’s important to note that changing reference categories won’t change “fit” or statistical sigificance, but can affect ease of interpretation.
+```
+
+# Tidy out the results 
