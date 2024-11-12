@@ -1,0 +1,68 @@
+---
+title: "cross_validation"
+author: "Yingyu Cui"
+date: "2024-11-12"
+output: github_document
+---
+## for final proj, the data set could be ignored in the .gitignore file: "/data/file name" if it is too large in size
+
+# cache is fine ?
+
+##model selection under or over fitting bias or variance or generalization high bias and underfitting, high variance and overfitting, pridiction accuracy: training and testing --- split into 80/20 is fine and using RMSE to evaluate; repeat 1000 times or randomly choose and split for representative;  k 折交叉验证（Repeated k-fold Cross-Validation）; modelr package and tidy models package;
+
+
+```{r}
+library(modelr)
+library(tidyverse)
+library(mgcv)
+
+install.packages("SemiPar")
+library(SemiPar)
+
+set.seed(1)
+
+```
+# operate the lidar data set 
+
+# compare 3 models: linear, smooth, wiggly
+sample_frac()--- sampling  size =  .8
+anti_join() --- testing 
+could add the testing data in geom_point()
+
+# fit 3 models
+lm()
+mgcv::gam(df, s(), data = )
+wiggly gam(df, s( k), sp data = )
+and always use gam() for every thing
+
+add_prediction in the table 
+and and geom_line(pred) into the plot
+
+recognize what is too fitting (too much curves) and what is too simple (too straight line)
+
+and compare these models with RMSE
+rmse(model, test_df) and compare the numbers
+
+whether these variances between rmse are consistent --- repeat
+
+# repeat training and testing 
+crossv_mc() |> as_tibble()
+use the mutate and map fuction for 
+and extract rmse
+anonymous function using \(x)
+for rmse using map2_dbl
+
+name_prefix()
+ggplot on these rmse and geom_violin()
+
+could change crossc_mc(test = 0.2) or something else, but most we use the 80/20 split
+
+# example
+weigh < 7 ---0 how this works 
+pwl_model ?
+and then same process as before for cv 
+
+
+
+
+
