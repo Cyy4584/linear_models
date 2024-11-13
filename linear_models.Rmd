@@ -31,7 +31,8 @@ nyc_airbnb =
 fit = lm(price ~ stars + borough, data = nyc_airbnb)
 #As we’ll see shortly, interactions between variables can be specified using *. You can also specify an intercept-only model (outcome ~ 1), a model with no intercept (outcome ~ 0 + ...), and a model using all available predictors (outcome ~ .).
 
-#for categotical variable,  the factor level is treated as the reference. As with ggplot, being careful with factors is therefore critical!
+#for categotical variable,  the factor level is treated as the reference. (who served as one in factor variable is the reference level)
+# As with ggplot, being careful with factors is therefore critical!
 
 nyc_airbnb = 
   nyc_airbnb |> 
@@ -44,3 +45,87 @@ fit = lm(price ~ stars + borough, data = nyc_airbnb)
 ```
 
 # Tidy out the results 
+```{r result}
+fit
+summary(fit)
+summary(fit)$coef
+coef(fit)
+# these are not good ways
+
+broom::glance(fit)
+broom::tidy(fit)
+# these are good and will form some tables not some matrix or what
+# when changing the reference level, the glance one will not change, but the tidy one will change.
+
+fit |> 
+  broom::tidy() |> 
+  select(term, estimate, p.value) |> 
+  mutate(term = str_replace(term, "^borough", "Borough: ")) |> 
+  knitr::kable(digits = 3)
+# As an aside, broom::tidy works with lots of things, including most of the functions for model fitting you’re likely to run into (survival, mixed models, additive models, …)
+```
+
+# Diagnostics and hypothesis test
+```{r diagnostics}
+modelr::add_residuals(nyc_airbnb, fit)
+# or
+modelr::add_predictions(nyc_airbnb, fit)
+# how to see whether the model is well distributed 
+nyc_airbnb |> 
+  modelr::add_residuals(fit) |> 
+  ggplot(aes(x = borough, y = resid)) + geom_violin()
+
+nyc_airbnb |> 
+  modelr::add_residuals(fit) |> 
+  ggplot(aes(x = stars, y = resid)) + geom_point()
+# For what it’s worth, I’d probably use a combination of median regression, which is less sensitive to outliers than OLS, and maybe bootstrapping for inference. If that’s not feasible, I’d omit rentals with price over $1000 (< 0.5% of the sample) from the primary analysis and examine these separately. I usually avoid transforming the outcome, because the results model is difficult to interpret.
+
+#Tests of this kind are required to assess the significance of a categorical predictor with more than two levels; like the borough has many levels but the table before test the association between boroughs. if we want to see whether there is association in "borough".
+fit_null = lm(price ~ stars + borough, data = nyc_airbnb)
+fit_alt = lm(price ~ stars + borough + room_type, data = nyc_airbnb)
+
+anova(fit_null, fit_alt) |> 
+  broom::tidy()
+# and we could see p-value
+```
+
+# nested data
+```{r nested}
+#how stars and room_type interact with borough
+nyc_airbnb |> 
+  lm(price ~ stars * borough + room_type * borough, data = _) |> 
+  broom::tidy() |> 
+  knitr::kable(digits = 3)
+
+# another way to do this
+nest_lm_res =
+  nyc_airbnb |> 
+  nest(data = -borough) |> 
+  mutate(
+    models = map(data, \(df) lm(price ~ stars + room_type, data = df)),
+    results = map(models, broom::tidy)) |> 
+  select(-data, -models) |> 
+  unnest(results)
+
+# change theway 
+nest_lm_res |> 
+  select(borough, term, estimate) |> 
+  mutate(term = fct_inorder(term)) |> 
+  pivot_wider(
+    names_from = term, values_from = estimate) |> 
+  knitr::kable(digits = 3)
+
+#   theme(axis.text.x = element_text(angle = 80, hjust = 1)) adjust the angle of the x-axis
+
+# for binomial variable --- glm()
+fit_logistic = 
+  baltimore_df |> 
+  glm(resolved ~ victim_age + victim_race + victim_sex, data = _, family = binomial()) 
+
+baltimore_df |> 
+  modelr::add_predictions(fit_logistic) |> 
+  mutate(fitted_prob = boot::inv.logit(pred))
+
+
+```
+
