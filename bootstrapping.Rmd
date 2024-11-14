@@ -1,0 +1,55 @@
+---
+title: "bootstrapping"
+author: "Yingyu Cui"
+date: "2024-11-14"
+output: github_document
+---
+
+```{r setup}
+library(tidyverse)
+library(modelr)
+library(p8105.datasets)
+
+set.seed(1)
+```
+
+
+# repeated sampling and give you sample mean, coefficient and odds ratio with known distribution
+
+```{r}
+# establish data sets
+#stat_smooth(method = "lm") for linear model
+
+sample_frac(replace = TRUE)
+arrange(x)
+geom_point(alpha = .5) # see what is repeated in plot zoom.
+
+#\(i) --- anonymous function
+we could change expand_grid() to tibble()
+
+pull() |> nth(2)
+
+summarize the sd of estimates using group_by()
+
+# what the difference between the constant datasets and the disconstant one?
+
+modelr::bootstrap() # for bootstrapping is the same as the fuction created in the previous section.
+but could transfer every strap sample into table
+
+report mean or sd of estimates in table or the IQR of estimates in table
+quantile(estimate, .025)
+quantile(estimate, .975)
+
+```
+
+# example 
+```{r airbnb}
+#stat_smooth() is same as geom_smooth() in ggplot2?
+
+# run a bootstap to check?
+#some outliers might change the distribution of the estimate 
+#sometimes only rely on the result of sample is not that reliable 
+
+```
+
+
